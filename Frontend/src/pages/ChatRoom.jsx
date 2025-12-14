@@ -218,32 +218,45 @@ const ChatRoom = () => {
   // Colors
   let bgColor = current.card;
   let textColor = current.text;
+  let secColor
 
   if (isMe) {
     bgColor = current.primary;
     textColor = "#fff";
+    secColor = "#e28b8b"
   }
 
   if (isBot) {
     bgColor = "#FFF4A3";   // Yellow bubble
     textColor = "#333";
+    secColor = "#333"
   }
 
   if (isUser) {
     bgColor = current.card;  // Normal white bubble
     textColor = current.text;
+    secColor = "#443232"
   }
 
   return (
     <div
       key={index}
-      className={`max-w-[60%] px-4 py-3 rounded-xl shadow-md ${alignment}`}
+      className={`max-w-[40%] px-4 py-3 rounded-xl shadow-md ${alignment}`}
       style={{
         backgroundColor: bgColor,
         color: textColor,
       }}
     >
-      {msg.text}
+      {msg.text} 
+      <br/>
+      <p class="text-xs font-semibold bg-[#443232]" 
+      style={{
+        backgroundColor: bgColor,
+        color: secColor,
+      }}>
+        {msg.sender}
+      </p>
+      
     </div>
   );
 })}
