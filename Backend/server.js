@@ -25,7 +25,7 @@ const io = new Server(httpServer, {
 io.on("connection", (socket) => {
   console.log(`user is connected ${socket.id}`);
 
-  
+  // const roomid = socket.roomid
 const userID = crypto.randomUUID();
 
   socket.on('joinRoom', async ({ username, roomid }) => {
@@ -53,6 +53,15 @@ const userID = crypto.randomUUID();
 
   io.to(roomid).emit('chatMessage', msg);
 });
+
+  socket.on('typing', (name)=>{
+    const roomid = socket.roomid;
+    socket.to(roomid).emit('typing', name)
+  })
+  socket.on('stopTyping', (name)=>{
+    const roomid = socket.roomid;
+    socket.to(roomid).emit('stopTyping', name)
+  })
 
 });
 

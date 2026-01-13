@@ -39,7 +39,7 @@ const ChatRoom = () => {
   {
     id: Date.now(),
     sender: "bot",
-    text: "Welcome to the chat! 🎉",
+    text: "Chat room is created 🎉",
     ts: Date.now()
   },
   {
@@ -49,7 +49,9 @@ const ChatRoom = () => {
     ts: Date.now()
   }
 ]);
-
+   
+   const [typer, setTyper] = useState([])
+   const timer = useRef(null)
 
   const current = darkMode ? theme.dark : theme.light;
 
@@ -72,17 +74,53 @@ const ChatRoom = () => {
       setMessages((prev) => [...prev, msg]);
     };
 
+    const typingName = (name) => {
+
+      setTyper((prev)=> {
+        const isExist = prev.find((typer)=> typer == name)
+
+        if(!isExist){
+          return [...prev, name]
+        }
+
+        return prev
+    })
+    }
+
+    const stop = (name) => {
+  setTyper((prev) => prev.filter((t) => t !== name));
+};
+
     socket.on("connect", handleConnect);
     socket.on("roomNotice", handleNotice);
     socket.on("chatMessage", handleMessage);
+    socket.on('typing', typingName)
+
+    socket.on('stopTyping', stop)
 
     return () => {
       socket.off("connect", handleConnect);
       socket.off("roomNotice", handleNotice);
       socket.off("chatMessage", handleMessage);
+      socket.off('typing', typingName)
+      socket.off('stopTyping',stop)
     };
   }, []);
 
+  useEffect(()=>{
+    if(message){
+      socket.emit('typing', name)
+      clearTimeout(timer.current)
+    }
+
+    timer.current = setTimeout(()=>{  //DEBOUNCE
+      socket.emit('stopTyping',name)
+    }, 1000)
+
+    return () => {
+      clearTimeout(timer.current)
+    }
+  }, [message])
 
 
   // ---- AUTO SCROLL ----
@@ -191,7 +229,15 @@ const ChatRoom = () => {
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl font-semibold">
               {firstLetter}
             </div>
-            <h1 className="text-xl font-semibold">{name}</h1>
+            <div>
+              <h1 className="text-xl font-semibold">{name}</h1>
+              {typer.length !== 0
+               ? <p>{typer.join(', ')} is typing...</p> 
+               : ""}
+          
+            </div>
+            
+            
           </div>
 
           {/* Dark / Light Mode */}
@@ -201,7 +247,9 @@ const ChatRoom = () => {
           >
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
+          
         </div>
+        
 
         {/* CHAT MESSAGES */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -249,7 +297,7 @@ const ChatRoom = () => {
     >
       {msg.text} 
       <br/>
-      <p class="text-xs font-semibold bg-[#443232]" 
+      <p className="text-xs font-semibold bg-[#443232]" 
       style={{
         backgroundColor: bgColor,
         color: secColor,
